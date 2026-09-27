@@ -212,10 +212,6 @@ scripts/benchmark.sh "10k products, Redis on" 50        # p50/p95 per endpoint, 
 
 The methodology, before/after-index runs (`FLYWAY_TARGET=1`), cached vs uncached runs, `EXPLAIN ANALYZE` queries and an empty results table to fill in are in **[docs/PERFORMANCE.md](docs/PERFORMANCE.md)**.
 
-## Screenshots
-
-Add your own after running the stack, for example `docs/screenshots/home.png`, `search.png`, `product.png` and `admin.png`, and link them here. The UI has: a search-first home page with trending products; search results with a filter sidebar, active-filter chips, sort and pagination; a product page with explainable recommendations; a wishlist with recent activity; and an admin table with an add/edit form.
-
 ## Engineering decisions and trade-offs
 
 - **SQL narrows, Java ranks.** Keeps relevance logic explicit and unit-testable. The cost is a scan for `LIKE '%token%'` and a 2,000-candidate cap, both surfaced in the API (`candidatesTruncated`) and in PERFORMANCE.md.
