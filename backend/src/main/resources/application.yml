@@ -1,0 +1,102 @@
+# QuickFind configuration.
+# Every credential comes from the environment (or a local .env file, imported below).
+spring:
+  application:
+    name: quickfind
+  config:
+    # Lets `mvnw spring-boot:run` pick up the repo-level .env without exporting variables.
+    import: "optional:file:.env[.properties],optional:file:../.env[.properties]"
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:quickfind}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true&createDatabaseIfNotExist=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # Flyway owns the schema; Hibernate only verifies it
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Set FLYWAY_TARGET=1 to run without the V2 performance indexes (before/after benchmarks).
+    target: ${FLYWAY_TARGET:latest}
+
+  data:
+    redis:
+      repositories:
+        enabled: false            # Redis is only a cache here, not a repository store
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+      connect-timeout: 500ms
+
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
+  level:
+    com.quickfind: INFO
+    org.hibernate.SQL: WARN
+
+quickfind:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  demo-user-email: ${DEMO_USER_EMAIL:demo@quickfind.dev}
+  seed:
+    enabled: ${SEED_ENABLED:true}
+  cache:
+    enabled: ${CACHE_ENABLED:true}
+    product-ttl: 30m
+    suggestion-ttl: 10m
+    recommendation-ttl: 10m
+    trending-ttl: 5m
+    # After a Redis failure, skip Redis for this long instead of paying the timeout on every request.
+    failure-backoff: 30s
+  search:
+    candidate-limit: 2000
+    max-page-size: 100
+    default-page-size: 20
+  suggestions:
+    default-limit: 8
+    max-limit: 20
+    # Only the N most popular product names become Trie terms (brands, categories,
+    # name phrases and popular queries are always included). Bounds Trie memory at 100k+ products.
+    max-product-terms: 10000
+    rebuild-check-interval-ms: 2000
+    popular-query-refresh-interval-ms: 300000
+  recommendations:
+    default-limit: 8
+    max-limit: 20
+    candidate-limit: 500
+    max-per-subcategory: 3
+  trending:
+    window-days: 7
+    max-events: 20000

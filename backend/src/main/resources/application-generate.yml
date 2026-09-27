@@ -1,0 +1,10 @@
+# Bulk data generation profile (used by scripts/generate-test-data.*).
+# Starts without a web server, inserts N synthetic products, then exits.
+spring:
+  main:
+    web-application-type: none
+
+quickfind:
+  generate:
+    count: 10000
+    batch-size: 1000
